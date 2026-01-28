@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KTMB 抢票指挥官 Web</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .card-header { background-color: #29549e; color: white; border-radius: 12px 12px 0 0 !important; font-weight: bold; }
+        .console { background-color: #1e1e1e; color: #00ff00; font-family: monospace; height: 300px; overflow-y: auto; padding: 15px; border-radius: 8px; font-size: 13px; }
+        .btn-start { background-color: #28a745; color: white; font-weight: bold; }
+        .btn-stop { background-color: #dc3545; color: white; font-weight: bold; }
+        .status-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background-color: gray; margin-right: 8px; }
+        .running { background-color: #28a745; box-shadow: 0 0 8px #28a745; }
+        .stopped { background-color: #dc3545; }
+        .task-block { background-color: #fff; transition: all 0.3s ease; }
+        .task-block:hover { border-color: #29549e !important; box-shadow: 0 2px 8px rgba(41,84,158,0.1); }
+        .swap-btn { background-color: #f8f9fa; border: 1px solid #ced4da; color: #495057; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; margin: 0 auto; }
+        .swap-btn:hover { background-color: #e2e6ea; transform: rotate(180deg); }
+    </style>
+</head>
+<body>
+
+<div class="container py-4">
+    <h2 class="text-center mb-4" style="color: #29549e;"><b>🚄 KTMB 抢票指挥官</b></h2>
+    
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>💻 实时监控台</span>
+            <span><span id="status-dot" class="status-dot stopped"></span><span id="status-text">已停止</span></span>
+        </div>
+        <div class="card-body">
+            <div id="log-console" class="console mb-3">等待启动...</div>
+            <div class="d-flex gap-2">
+                <button id="btn-start" class="btn btn-start w-100" onclick="startBot()">🚀 启动抢票</button>
+                <button id="btn-stop" class="btn btn-stop w-100" onclick="stopBot()" disabled>🛑 停止</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">⚙️ 任务配置 (修改后请先点击底部保存)</div>
+        <div class="card-body">
+            <form id="configForm">
+                
+                <datalist id="stations">
+                    <option value="KLUANG ETS Intercity">
+                    <option value="JB SENTRAL ETS Intercity">
+                    <option value="GEMAS">
+                    <option value="KL SENTRAL">
+                </datalist>
+
+                <div class="d-flex justify-content-between align-items-center mt-2 mb-3">
+                    <h6 class="text-primary m-0">1. 乘车计划 (可添加多个时间段)</h6>
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="addTask()">➕ 添加计划</button>
+                </div>
+                
+                <div id="tasks-container"></div>
+
+                <hr>
+                
+                <h6 class="text-primary">2. 账号与支付</h6>
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6"><label class="form-label text-muted small">KTMB 邮箱</label><input type="email" class="form-control" id="email" value="{{ config.get('account', {}).get('email', '') }}"></div>
+                    <div class="col-md-6"><label class="form-label text-muted small">KTMB 密码</label><input type="password" class="form-control" id="password" value="{{ config.get('account', {}).get('password', '') }}"></div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted small">支付方式</label>
+                    <select class="form-select" id="payment_method">
+                        <option value="Command" {% if config.get('payment_method') == 'Command' %}selected{% endif %}>Command (遥控指令 - 推荐)</option>
+                        <option value="KTM Wallet" {% if config.get('payment_method') == 'KTM Wallet' %}selected{% endif %}>KTM Wallet (自动扣款)</option>
+                        <option value="DuitNow" {% if config.get('payment_method') == 'DuitNow' %}selected{% endif %}>DuitNow</option>
+                    </select>
+                </div>
+
+                <hr>
+
+                <h6 class="text-primary">3. 机器人参数 (偏好 & 通知)</h6>
+                
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6"><label class="form-label text-muted small">Telegram Token</label>
+                        <input type="text" class="form-control" id="tg_token" placeholder="123456789:ABCdef..." value="{{ config.get('notification', {}).get('telegram_token', '') }}">
+                    </div>
+                    <div class="col-md-6"><label class="form-label text-muted small">Telegram Chat ID</label>
+                        <input type="text" class="form-control" id="tg_chat_id" placeholder="-1001234567890" value="{{ config.get('notification', {}).get('telegram_chat_id', '') }}">
+                    </div>
+                </div>
+
+                <!-- 🔥 新增的心跳截图开关 -->
+                <div class="row g-2 mb-3">
+                    <div class="col-12">
+                        <div class="p-2 border rounded bg-light border-primary border-opacity-25">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="tg_heartbeat_screenshot" {% if config.get('notification', {}).get('heartbeat_screenshot', False) %}checked{% endif %}>
+                                <label class="form-check-label text-primary small fw-bold" for="tg_heartbeat_screenshot">
+                                    📸 存活心跳附带网页截图 (允许通过 /snap 随时截屏)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                        <div class="p-2 border rounded bg-light">
+                            <label class="form-label text-muted small fw-bold">旧火车 (Intercity) 座位偏好</label>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="pref_forward" {% if config.get('preferences', {}).get('prefer_forward', True) %}checked{% endif %}>
+                                <label class="form-check-label text-muted small" for="pref_forward">正向座位 (Forward)</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="pref_window" {% if config.get('preferences', {}).get('prefer_window', True) %}checked{% endif %}>
+                                <label class="form-check-label text-muted small" for="pref_window">靠窗优先 (Window)</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-2 border rounded bg-light">
+                            <label class="form-label text-muted small fw-bold">新火车 (ETS) 座位偏好</label>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="pref_normal" {% if config.get('preferences', {}).get('prefer_normal_seat', True) %}checked{% endif %}>
+                                <label class="form-check-label text-muted small" for="pref_normal">普通座位 (Normal Seat)</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="pref_table" {% if config.get('preferences', {}).get('accept_table_seat', True) %}checked{% endif %}>
+                                <label class="form-check-label text-muted small" for="pref_table">接受大桌位 (Table Seat)</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <h6 class="text-primary">4. 核心系统参数 (Advanced)</h6>
+                <div class="row g-2 mb-3">
+                    <div class="col-md-3 col-6">
+                        <label class="form-label text-muted small">Bot ID (编号)</label>
+                        <input type="text" class="form-control" id="bot_id" value="{{ config.get('bot_settings', {}).get('bot_id', '1') }}">
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <label class="form-label text-muted small">Chrome 端口</label>
+                        <input type="number" class="form-control" id="chrome_port" value="{{ config.get('bot_settings', {}).get('chrome_port', 9222) }}">
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <label class="form-label text-muted small">心跳间隔 (轮次)</label>
+                        <input type="number" class="form-control" id="heartbeat_interval" value="{{ config.get('bot_settings', {}).get('heartbeat_interval', 100) }}">
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <label class="form-label text-muted small">刷票间隔 (秒)</label>
+                        <input type="number" class="form-control" id="refresh_interval" value="{{ config.get('bot_settings', {}).get('refresh_interval', 180) }}">
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-primary w-100 mt-3 py-2 fw-bold" onclick="saveConfig()">💾 保存所有配置</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    let tasks = {{ config.get('search_tasks', [{}]) | tojson | safe }};
+    if (tasks.length === 0 || !tasks[0].from) {
+        tasks = [{from: "KLUANG ETS Intercity", to: "JB SENTRAL ETS Intercity", year: 2026, month: 3, day: "2", time: "18:49", is_old_train: true}];
+    }
+
+    renderTasks();
+
+    function renderTasks() {
+        const container = document.getElementById('tasks-container');
+        container.innerHTML = ''; 
+
+        tasks.forEach((task, index) => {
+            const isOldTrain = task.is_old_train !== false; 
+            const html = `
+            <div class="task-block border rounded p-3 mb-3 position-relative shadow-sm" data-index="${index}">
+                ${tasks.length > 1 ? `<button type="button" class="btn-close position-absolute top-0 end-0 m-2" onclick="removeTask(${index})" title="删除此计划"></button>` : ''}
+                
+                <div class="row g-2 mb-2 align-items-end">
+                    <div class="col-5">
+                        <label class="form-label text-muted small mb-1">出发站</label>
+                        <input type="text" class="form-control station-from" list="stations" value="${task.from || ''}">
+                    </div>
+                    <div class="col-2 d-flex justify-content-center pb-1">
+                        <div class="swap-btn" onclick="swapStation(${index})" title="对换出发/到达站">🔄</div>
+                    </div>
+                    <div class="col-5">
+                        <label class="form-label text-muted small mb-1">到达站</label>
+                        <input type="text" class="form-control station-to" list="stations" value="${task.to || ''}">
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-2">
+                    <div class="col-4"><label class="form-label text-muted small mb-1">年</label><input type="number" class="form-control task-year" value="${task.year || new Date().getFullYear()}"></div>
+                    <div class="col-4"><label class="form-label text-muted small mb-1">月</label><input type="number" class="form-control task-month" value="${task.month || 1}"></div>
+                    <div class="col-4"><label class="form-label text-muted small mb-1">日</label><input type="text" class="form-control task-day" value="${task.day || '1'}"></div>
+                </div>
+
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="form-label text-muted small mb-1">时间 (HH:MM)</label>
+                        <input type="text" class="form-control task-time" value="${task.time || '08:00'}">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label text-muted small mb-1">火车类型</label>
+                        <select class="form-select task-type">
+                            <option value="true" ${isOldTrain ? 'selected' : ''}>旧火车 (Intercity)</option>
+                            <option value="false" ${!isOldTrain ? 'selected' : ''}>新火车 (ETS)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>`;
+            container.insertAdjacentHTML('beforeend', html);
+        });
+    }
+
+    function addTask() {
+        const lastTask = tasks[tasks.length - 1];
+        tasks.push({
+            from: lastTask.from, to: lastTask.to, 
+            year: lastTask.year, month: lastTask.month, day: lastTask.day, 
+            time: "12:00", is_old_train: lastTask.is_old_train 
+        });
+        renderTasks();
+    }
+
+    function removeTask(index) {
+        syncTasksFromDOM();
+        tasks.splice(index, 1);
+        renderTasks();
+    }
+
+    function swapStation(index) {
+        const blocks = document.querySelectorAll('.task-block');
+        const block = blocks[index];
+        const fromInput = block.querySelector('.station-from');
+        const toInput = block.querySelector('.station-to');
+        const temp = fromInput.value;
+        fromInput.value = toInput.value;
+        toInput.value = temp;
+    }
+
+    function syncTasksFromDOM() {
+        const result = [];
+        document.querySelectorAll('.task-block').forEach((block, idx) => {
+            result.push({
+                from: block.querySelector('.station-from').value,
+                to: block.querySelector('.station-to').value,
+                year: parseInt(block.querySelector('.task-year').value) || 2026,
+                month: parseInt(block.querySelector('.task-month').value) || 1,
+                day: block.querySelector('.task-day').value || '1',
+                time: block.querySelector('.task-time').value || '00:00',
+                is_old_train: block.querySelector('.task-type').value === 'true',
+                type: `监控计划 ${idx + 1}`
+            });
+        });
+        tasks = result;
+        return result;
+    }
+
+    function saveConfig() {
+        const data = {
+            "account": {
+                "email": document.getElementById('email').value,
+                "password": document.getElementById('password').value
+            },
+            "payment_method": document.getElementById('payment_method').value,
+            "search_tasks": syncTasksFromDOM(),
+            
+            "notification": { 
+                "telegram_token": document.getElementById('tg_token').value, 
+                "telegram_chat_id": document.getElementById('tg_chat_id').value,
+                "heartbeat_screenshot": document.getElementById('tg_heartbeat_screenshot').checked // 🔥 保存截图选项
+            },
+            "preferences": { 
+                "prefer_forward": document.getElementById('pref_forward').checked, 
+                "prefer_window": document.getElementById('pref_window').checked, 
+                "prefer_normal_seat": document.getElementById('pref_normal').checked, 
+                "accept_table_seat": document.getElementById('pref_table').checked 
+            },
+            
+            "bot_settings": { 
+                "bot_id": document.getElementById('bot_id').value, 
+                "chrome_port": parseInt(document.getElementById('chrome_port').value) || 9222, 
+                "heartbeat_interval": parseInt(document.getElementById('heartbeat_interval').value) || 100, 
+                "refresh_interval": parseInt(document.getElementById('refresh_interval').value) || 180 
+            }
+        };
+
+        fetch('/api/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        }).then(res => res.json()).then(data => alert(data.message));
+    }
+
+    function startBot() {
+        fetch('/api/start', { method: 'POST' }).then(res => res.json()).then(data => {
+            if(data.status === 'success') updateStatus();
+            else alert(data.message);
+        });
+    }
+
+    function stopBot() {
+        fetch('/api/stop', { method: 'POST' }).then(res => res.json()).then(data => updateStatus());
+    }
+
+    setInterval(() => {
+        fetch('/api/status').then(res => res.json()).then(data => {
+            const isRunning = data.running;
+            document.getElementById('status-dot').className = isRunning ? 'status-dot running' : 'status-dot stopped';
+            document.getElementById('status-text').innerText = isRunning ? '正在运行' : '已停止';
+            document.getElementById('btn-start').disabled = isRunning;
+            document.getElementById('btn-stop').disabled = !isRunning;
+        });
+
+        fetch('/api/logs').then(res => res.json()).then(data => {
+            const consoleEl = document.getElementById('log-console');
+            const isScrolledToBottom = consoleEl.scrollHeight - consoleEl.clientHeight <= consoleEl.scrollTop + 10;
+            consoleEl.innerText = data.logs;
+            if(isScrolledToBottom) {
+                consoleEl.scrollTop = consoleEl.scrollHeight;
+            }
+        });
+    }, 2000);
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

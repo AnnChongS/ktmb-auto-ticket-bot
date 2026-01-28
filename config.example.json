@@ -1,0 +1,36 @@
+{
+    "account": {
+        "email": "your_email@gmail.com",
+        "password": "your_password_here"
+    },
+    "payment_method": "Command",
+    "search_tasks": [
+        {
+            "from": "KLUANG ETS Intercity",
+            "to": "JB SENTRAL ETS Intercity",
+            "year": 2026,
+            "month": 5,
+            "day": "17",
+            "time": "14:31",
+            "is_old_train": false,
+            "type": "监控计划 1"
+        }
+    ],
+    "notification": {
+        "telegram_token": "your_bot_token_here",
+        "telegram_chat_id": "your_chat_id_here",
+        "heartbeat_screenshot": true
+    },
+    "preferences": {
+        "prefer_forward": true,
+        "prefer_window": true,
+        "prefer_normal_seat": true,
+        "accept_table_seat": true
+    },
+    "bot_settings": {
+        "bot_id": "1",
+        "chrome_port": 9222,
+        "heartbeat_interval": 500,
+        "refresh_interval": 180
+    }
+}

@@ -1,0 +1,8 @@
+config.json
+venv/
+__pycache__/
+*.pyc
+bot.log
+web_server.log
+linux_chrome_data/
+*.egg-info/
