@@ -1,6 +1,6 @@
 **[English](README.md)** | 中文
 
-# 🚄 KTMB 自动抢票机器人 v1.0
+# 🚄 KTMB 自动抢票机器人 v1.1
 
 马来西亚 KTMB 火车票自动抢票系统，支持 **Windows** 和 **Linux** 双平台运行。
 

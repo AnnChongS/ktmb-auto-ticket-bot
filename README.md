@@ -1,6 +1,6 @@
 English | **[中文](README_zh.md)**
 
-# 🚄 KTMB Auto Ticket Bot v1.0
+# 🚄 KTMB Auto Ticket Bot v1.1
 
 An automated ticket booking system for Malaysia's KTMB train service, supporting both **Windows** and **Linux** platforms.
 
