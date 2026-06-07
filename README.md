@@ -1,154 +1,156 @@
-# 🚄 KTMB 自动抢票机器人 v1.0
+English | **[中文](README_zh.md)**
 
-马来西亚 KTMB 火车票自动抢票系统，支持 **Windows** 和 **Linux** 双平台运行。
+# 🚄 KTMB Auto Ticket Bot v1.0
 
-通过 Playwright 浏览器自动化模拟真人操作，实现全自动监控余票、智能选座、自动填单、极速付款，并支持 Telegram 远程控制。
+An automated ticket booking system for Malaysia's KTMB train service, supporting both **Windows** and **Linux** platforms.
 
----
-
-## ✨ 核心功能
-
-| 功能 | 说明 |
-|------|------|
-| 🔄 **智能捡漏** | 无票时自动循环刷新，支持自定义间隔（默认 180 秒） |
-| 📅 **多任务监控** | config.json 中配置多个搜索任务，逐个监控 |
-| 💺 **智能选座** | 遍历车厢，优先普通座 → 大桌座；旧式火车支持靠窗/朝前偏好 |
-| 💳 **多种付款** | KTM Wallet（全自动扣款）、DuitNow（生成二维码）、TnG、Manual |
-| 🔔 **Telegram 通知** | 抢票成功、心跳存活、崩溃报错 → 自动推送文字+截图 |
-| 📱 **远程控制** | 通过 Telegram Bot 发送指令操控机器人 |
-| 🖥️ **Web 管理面板** | Flask 后端，浏览器打开 `localhost:5000` 配置/启停/看日志 |
-| 🛡️ **安全登出** | `/logout` 远程安全退出账号，避免 30 分钟冷却 |
-| 🤖 **开机防误触** | 启动时自动清空历史 Telegram 指令，防止旧 `/logout` 误执行 |
+Powered by Playwright browser automation to simulate real user operations — fully automated ticket monitoring, smart seat selection, form filling, instant payment, and Telegram remote control.
 
 ---
 
-## 🚀 快速开始（3步搞定）
+## ✨ Features
 
-### 1. 安装 Python
-
-下载安装 Python 3.8+：https://www.python.org/downloads/
-
-> ⚠️ 安装时务必勾选 **"Add Python to PATH"**
-
-### 2. 运行启动脚本
-
-**Windows：** 双击 `start_bot.bat`
-
-**Linux：** 终端运行 `bash start_linux.sh`
-
-脚本会自动完成一切：创建虚拟环境、安装依赖、安装浏览器、启动服务。
-
-### 3. 打开管理面板配置
-
-浏览器打开 **http://localhost:5000**
-
-在 Web 界面填写：
-- KTMB 账号密码
-- 监控路线和日期
-- Telegram Bot Token（可选，用于通知和远程控制）
-- 付款方式
-
-点击 **保存** → **启动**，坐等出票 🎉
+| Feature | Description |
+|---------|-------------|
+| 🔄 **Smart Ticket Hunt** | Auto-refresh loop when no tickets available, with customizable interval (default 180s) |
+| 📅 **Multi-Task Monitoring** | Configure multiple search tasks in config.json, monitored sequentially |
+| 💺 **Smart Seat Selection** | Scans all carriages, prefers normal seats → table seats; old trains support window/forward preferences |
+| 💳 **Multiple Payment Methods** | KTM Wallet (auto-deduct), DuitNow (QR code), TnG, Manual |
+| 🔔 **Telegram Notifications** | Booking success, heartbeat status, crash alerts → auto push with text + screenshots |
+| 📱 **Remote Control** | Control the bot via Telegram Bot commands |
+| 🖥️ **Web Management Panel** | Flask backend, open `localhost:5000` in browser to configure/start/stop/view logs |
+| 🛡️ **Safe Logout** | `/logout` remotely logs out safely, avoiding the 30-minute cooldown |
+| 🤖 **Anti-Misfire on Boot** | Automatically clears old Telegram commands on startup to prevent stale `/logout` execution |
 
 ---
 
-## 📱 Telegram 远程指令
+## 🚀 Quick Start (3 Steps)
 
-| 指令 | 说明 |
-|------|------|
-| `/snap` | 截取当前屏幕画面发送到手机 |
-| `/snap1` | 指定 Bot ID=1 截屏（多机器人时使用） |
-| `/duitnow` | 生成 DuitNow 付款二维码 |
-| `/tng` | 生成 Touch 'n Go 付款二维码 |
-| `/wallet` | 使用 KTM Wallet 自动扣款 |
-| `/manual` | 切换为人工付款模式 |
-| `/logout` | 安全登出 KTMB 账号并关闭程序 |
-| `/logout1` | 指定 Bot ID=1 安全登出 |
+### 1. Install Python
 
-> 支持 `/snap all`（广播）和 `/snap1`（定向）两种格式
+Download and install Python 3.8+: https://www.python.org/downloads/
+
+> ⚠️ Make sure to check **"Add Python to PATH"** during installation
+
+### 2. Run the Startup Script
+
+**Windows:** Double-click `start_bot.bat`
+
+**Linux:** Run `bash start_linux.sh` in terminal
+
+The script handles everything automatically: creates virtual environment, installs dependencies, installs browser, and starts the service.
+
+### 3. Open the Management Panel
+
+Open **http://localhost:5000** in your browser
+
+Fill in the web interface:
+- KTMB account credentials
+- Routes and dates to monitor
+- Telegram Bot Token (optional, for notifications and remote control)
+- Payment method
+
+Click **Save** → **Start**, then wait for tickets 🎉
 
 ---
 
-## 📂 项目结构
+## 📱 Telegram Remote Commands
+
+| Command | Description |
+|---------|-------------|
+| `/snap` | Capture current screen and send to your phone |
+| `/snap1` | Capture screen for Bot ID=1 (used when running multiple bots) |
+| `/duitnow` | Generate DuitNow payment QR code |
+| `/tng` | Generate Touch 'n Go payment QR code |
+| `/wallet` | Use KTM Wallet for auto-deduction |
+| `/manual` | Switch to manual payment mode |
+| `/logout` | Safely log out of KTMB account and shut down |
+| `/logout1` | Safely log out for Bot ID=1 |
+
+> Supports both `/snap all` (broadcast) and `/snap1` (targeted) formats
+
+---
+
+## 📂 Project Structure
 
 ```
-├── ktmb_auto.py          # 核心抢票引擎
-├── app.py                # Flask Web 管理面板
-├── config.json           # 配置文件（需自行创建）
-├── config.example.json   # 配置模板
-├── start_bot.bat         # Windows 一键启动脚本
-├── start_linux.sh        # Linux 一键启动脚本
+├── ktmb_auto.py          # Core ticket booking engine
+├── app.py                # Flask web management panel
+├── config.json           # Configuration file (user-created)
+├── config.example.json   # Configuration template
+├── start_bot.bat         # Windows one-click startup script
+├── start_linux.sh        # Linux one-click startup script
 ├── templates/
-│   └── index.html        # Web 管理界面
+│   └── index.html        # Web management interface
 └── static/
-    └── favicon.ico       # 图标
+    └── favicon.ico       # Icon
 ```
 
 ---
 
-## 🔧 配置说明
+## 🔧 Configuration Guide
 
-### search_tasks（搜索任务）
+### search_tasks
 
-| 字段 | 说明 |
-|------|------|
-| `from` / `to` | 出发站 / 到达站（必须与 KTMB 网站显示一致） |
-| `year` / `month` / `day` | 目标日期 |
-| `time` | 目标车次时间，格式 `HH:MM` |
-| `is_old_train` | 是否旧式火车（影响选座逻辑） |
+| Field | Description |
+|-------|-------------|
+| `from` / `to` | Departure / Arrival station (must match KTMB website display names) |
+| `year` / `month` / `day` | Target travel date |
+| `time` | Target train time, format `HH:MM` |
+| `is_old_train` | Whether it's an old-style train (affects seat selection logic) |
 
-### preferences（选座偏好）
+### preferences
 
-| 字段 | 说明 |
-|------|------|
-| `prefer_forward` | 优先朝前座位（旧火车） |
-| `prefer_window` | 优先靠窗座位（旧火车） |
-| `prefer_normal_seat` | 优先普通座位（新火车） |
-| `accept_table_seat` | 无普通座时接受大桌座 |
+| Field | Description |
+|-------|-------------|
+| `prefer_forward` | Prefer forward-facing seats (old trains) |
+| `prefer_window` | Prefer window seats (old trains) |
+| `prefer_normal_seat` | Prefer normal seats (new trains) |
+| `accept_table_seat` | Accept table seats when no normal seats available |
 
-### payment_method（付款方式）
+### payment_method
 
-| 值 | 说明 |
-|----|------|
-| `"Command"` | 等待 Telegram 指令选择付款方式（推荐） |
-| `"KTM Wallet"` | 自动使用 KTM Wallet 扣款 |
-| `"DuitNow"` | 自动生成 DuitNow 二维码 |
-| `"Manual"` | 通知人工手动付款 |
+| Value | Description |
+|-------|-------------|
+| `"Command"` | Wait for Telegram command to choose payment method (recommended) |
+| `"KTM Wallet"` | Auto-use KTM Wallet for deduction |
+| `"DuitNow"` | Auto-generate DuitNow QR code |
+| `"Manual"` | Notify user for manual payment |
 
-### bot_settings（机器人设置）
+### bot_settings
 
-| 字段 | 说明 |
-|------|------|
-| `bot_id` | 机器人 ID，多开时区分不同实例 |
-| `chrome_port` | Chrome 调试端口（默认 9222） |
-| `heartbeat_interval` | 每 N 轮发送一次存活通知 |
-| `refresh_interval` | 无票时等待秒数（默认 180） |
+| Field | Description |
+|-------|-------------|
+| `bot_id` | Bot ID to distinguish instances when running multiple bots |
+| `chrome_port` | Chrome debug port (default 9222) |
+| `heartbeat_interval` | Send heartbeat notification every N cycles |
+| `refresh_interval` | Seconds to wait when no tickets available (default 180) |
 
 ---
 
-## 🔄 抢票流程
+## 🔄 Ticket Flow
 
 ```
-启动 → 清空历史TG指令 → 登录KTMB → 搜索车次
-  ↓ 无票
-等待 N 秒 → 重新搜索（循环）
-  ↓ 有票
-选座 → 填写乘客信息 → 确认订单
+Start → Clear old TG commands → Login to KTMB → Search for trains
+  ↓ No tickets
+Wait N seconds → Search again (loop)
+  ↓ Tickets found
+Select seat → Fill passenger info → Confirm order
   ↓
-[Command模式] 等待TG指令选择付款方式
-[自动模式] 直接执行付款
+[Command mode] Wait for TG command to choose payment method
+[Auto mode] Execute payment directly
   ↓
-付款完成 → 通知用户 → 程序退出
+Payment complete → Notify user → Program exits
 ```
 
 ---
 
-## ⚠️ 免责声明
+## ⚠️ Disclaimer
 
-- 本项目仅供**技术交流与个人学习**使用，请勿用于任何违法行为
-- 使用本工具造成的**账号封禁、购票失败、资金损失**等一切后果由使用者自行承担
-- 本项目**不隶属于 KTMB (Keretapi Tanah Melayu Berhad)** 或任何官方机构
-- 作者不对因使用本项目产生的任何直接或间接损失负责
+- This project is intended for **technical exchange and personal learning** only. Do not use it for any illegal activities.
+- All consequences of using this tool, including **account bans, booking failures, and financial losses**, are the sole responsibility of the user.
+- This project is **not affiliated with KTMB (Keretapi Tanah Melayu Berhad)** or any official organization.
+- The author is not responsible for any direct or indirect damages arising from the use of this project.
 
 ---
 
@@ -156,14 +158,14 @@
 
 This project is licensed under the **GNU AGPLv3 License** - see the [LICENSE](LICENSE) file for details.
 
-**⚠️ 注意 (Warning):**
+**⚠️ Warning:**
 
-由于采用了 AGPL-3.0 协议，**任何对本项目源代码的修改、衍生或基于本项目的网络服务，都必须以相同的 AGPL-3.0 协议公开全部源代码。**
+Under the AGPL-3.0 license, **any modifications, derivatives, or network services based on this project must release their complete source code under the same AGPL-3.0 license.**
 
-**🚫 禁止以下用途：**
+**🚫 The following uses are prohibited:**
 
-- **代抢黑产** — 禁止将本项目用于任何形式的代抢、黄牛倒票等违法违规活动
-- **商业牟利** — 禁止将本项目用于任何收费代抢、商业运营等盈利行为
-- **闭源修改** — 任何修改后的版本必须向用户公开完整源代码
+- **Scalping / Ticket Reselling** — Using this project for any form of ticket scalping, reselling, or illegal trading is strictly forbidden
+- **Commercial Profit** — Using this project for paid ticket booking services or any commercial operations is strictly forbidden
+- **Closed-Source Modifications** — Any modified versions must be fully open-sourced to users
 
-如有违反，作者保留追究法律责任的权利。
+Violators will be subject to legal action at the author's discretion.

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KTMB 抢票指挥官 Web</title>
+    <title data-i18n="page_title">KTMB 抢票指挥官 Web</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -19,29 +19,33 @@
         .task-block:hover { border-color: #29549e !important; box-shadow: 0 2px 8px rgba(41,84,158,0.1); }
         .swap-btn { background-color: #f8f9fa; border: 1px solid #ced4da; color: #495057; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; margin: 0 auto; }
         .swap-btn:hover { background-color: #e2e6ea; transform: rotate(180deg); }
+        .lang-switch { position: fixed; top: 15px; right: 20px; z-index: 1000; background: rgba(41,84,158,0.9); color: white; border: none; border-radius: 20px; padding: 6px 14px; font-size: 13px; cursor: pointer; transition: 0.2s; }
+        .lang-switch:hover { background: rgba(41,84,158,1); transform: scale(1.05); }
     </style>
 </head>
 <body>
 
+<button class="lang-switch" onclick="toggleLang()" data-i18n="lang_btn">🌐 中/EN</button>
+
 <div class="container py-4">
-    <h2 class="text-center mb-4" style="color: #29549e;"><b>🚄 KTMB 抢票指挥官</b></h2>
+    <h2 class="text-center mb-4" style="color: #29549e;"><b data-i18n="title">🚄 KTMB 抢票指挥官</b></h2>
     
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <span>💻 实时监控台</span>
-            <span><span id="status-dot" class="status-dot stopped"></span><span id="status-text">已停止</span></span>
+            <span data-i18n="live_monitor">💻 实时监控台</span>
+            <span><span id="status-dot" class="status-dot stopped"></span><span id="status-text" data-i18n="status_stopped">已停止</span></span>
         </div>
         <div class="card-body">
-            <div id="log-console" class="console mb-3">等待启动...</div>
+            <div id="log-console" class="console mb-3" data-i18n="waiting">等待启动...</div>
             <div class="d-flex gap-2">
-                <button id="btn-start" class="btn btn-start w-100" onclick="startBot()">🚀 启动抢票</button>
-                <button id="btn-stop" class="btn btn-stop w-100" onclick="stopBot()" disabled>🛑 停止</button>
+                <button id="btn-start" class="btn btn-start w-100" onclick="startBot()" data-i18n="btn_start">🚀 启动抢票</button>
+                <button id="btn-stop" class="btn btn-stop w-100" onclick="stopBot()" disabled data-i18n="btn_stop">🛑 停止</button>
             </div>
         </div>
     </div>
 
     <div class="card">
-        <div class="card-header">⚙️ 任务配置 (修改后请先点击底部保存)</div>
+        <div class="card-header" data-i18n="task_config">⚙️ 任务配置 (修改后请先点击底部保存)</div>
         <div class="card-body">
             <form id="configForm">
                 
@@ -53,31 +57,31 @@
                 </datalist>
 
                 <div class="d-flex justify-content-between align-items-center mt-2 mb-3">
-                    <h6 class="text-primary m-0">1. 乘车计划 (可添加多个时间段)</h6>
-                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="addTask()">➕ 添加计划</button>
+                    <h6 class="text-primary m-0" data-i18n="travel_plans">1. 乘车计划 (可添加多个时间段)</h6>
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="addTask()" data-i18n="add_plan">➕ 添加计划</button>
                 </div>
                 
                 <div id="tasks-container"></div>
 
                 <hr>
                 
-                <h6 class="text-primary">2. 账号与支付</h6>
+                <h6 class="text-primary" data-i18n="account_payment">2. 账号与支付</h6>
                 <div class="row g-2 mb-3">
-                    <div class="col-md-6"><label class="form-label text-muted small">KTMB 邮箱</label><input type="email" class="form-control" id="email" value="{{ config.get('account', {}).get('email', '') }}"></div>
-                    <div class="col-md-6"><label class="form-label text-muted small">KTMB 密码</label><input type="password" class="form-control" id="password" value="{{ config.get('account', {}).get('password', '') }}"></div>
+                    <div class="col-md-6"><label class="form-label text-muted small" data-i18n="ktmb_email">KTMB 邮箱</label><input type="email" class="form-control" id="email" value="{{ config.get('account', {}).get('email', '') }}"></div>
+                    <div class="col-md-6"><label class="form-label text-muted small" data-i18n="ktmb_password">KTMB 密码</label><input type="password" class="form-control" id="password" value="{{ config.get('account', {}).get('password', '') }}"></div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label text-muted small">支付方式</label>
+                    <label class="form-label text-muted small" data-i18n="payment_method">支付方式</label>
                     <select class="form-select" id="payment_method">
-                        <option value="Command" {% if config.get('payment_method') == 'Command' %}selected{% endif %}>Command (遥控指令 - 推荐)</option>
-                        <option value="KTM Wallet" {% if config.get('payment_method') == 'KTM Wallet' %}selected{% endif %}>KTM Wallet (自动扣款)</option>
+                        <option value="Command" {% if config.get('payment_method') == 'Command' %}selected{% endif %} data-i18n="pay_command">Command (遥控指令 - 推荐)</option>
+                        <option value="KTM Wallet" {% if config.get('payment_method') == 'KTM Wallet' %}selected{% endif %} data-i18n="pay_wallet">KTM Wallet (自动扣款)</option>
                         <option value="DuitNow" {% if config.get('payment_method') == 'DuitNow' %}selected{% endif %}>DuitNow</option>
                     </select>
                 </div>
 
                 <hr>
 
-                <h6 class="text-primary">3. 机器人参数 (偏好 & 通知)</h6>
+                <h6 class="text-primary" data-i18n="bot_settings">3. 机器人参数 (偏好 & 通知)</h6>
                 
                 <div class="row g-2 mb-3">
                     <div class="col-md-6"><label class="form-label text-muted small">Telegram Token</label>
@@ -94,7 +98,7 @@
                         <div class="p-2 border rounded bg-light border-primary border-opacity-25">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="tg_heartbeat_screenshot" {% if config.get('notification', {}).get('heartbeat_screenshot', False) %}checked{% endif %}>
-                                <label class="form-check-label text-primary small fw-bold" for="tg_heartbeat_screenshot">
+                                <label class="form-check-label text-primary small fw-bold" for="tg_heartbeat_screenshot" data-i18n="heartbeat_screenshot">
                                     📸 存活心跳附带网页截图 (允许通过 /snap 随时截屏)
                                 </label>
                             </div>
@@ -105,27 +109,27 @@
                 <div class="row g-2 mb-3">
                     <div class="col-md-6">
                         <div class="p-2 border rounded bg-light">
-                            <label class="form-label text-muted small fw-bold">旧火车 (Intercity) 座位偏好</label>
+                            <label class="form-label text-muted small fw-bold" data-i18n="old_train_seat">旧火车 (Intercity) 座位偏好</label>
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="pref_forward" {% if config.get('preferences', {}).get('prefer_forward', True) %}checked{% endif %}>
-                                <label class="form-check-label text-muted small" for="pref_forward">正向座位 (Forward)</label>
+                                <label class="form-check-label text-muted small" for="pref_forward" data-i18n="seat_forward">正向座位 (Forward)</label>
                             </div>
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="pref_window" {% if config.get('preferences', {}).get('prefer_window', True) %}checked{% endif %}>
-                                <label class="form-check-label text-muted small" for="pref_window">靠窗优先 (Window)</label>
+                                <label class="form-check-label text-muted small" for="pref_window" data-i18n="seat_window">靠窗优先 (Window)</label>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="p-2 border rounded bg-light">
-                            <label class="form-label text-muted small fw-bold">新火车 (ETS) 座位偏好</label>
+                            <label class="form-label text-muted small fw-bold" data-i18n="new_train_seat">新火车 (ETS) 座位偏好</label>
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="pref_normal" {% if config.get('preferences', {}).get('prefer_normal_seat', True) %}checked{% endif %}>
-                                <label class="form-check-label text-muted small" for="pref_normal">普通座位 (Normal Seat)</label>
+                                <label class="form-check-label text-muted small" for="pref_normal" data-i18n="seat_normal">普通座位 (Normal Seat)</label>
                             </div>
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="pref_table" {% if config.get('preferences', {}).get('accept_table_seat', True) %}checked{% endif %}>
-                                <label class="form-check-label text-muted small" for="pref_table">接受大桌位 (Table Seat)</label>
+                                <label class="form-check-label text-muted small" for="pref_table" data-i18n="seat_table">接受大桌位 (Table Seat)</label>
                             </div>
                         </div>
                     </div>
@@ -133,33 +137,176 @@
 
                 <hr>
 
-                <h6 class="text-primary">4. 核心系统参数 (Advanced)</h6>
+                <h6 class="text-primary" data-i18n="sys_params">4. 核心系统参数 (Advanced)</h6>
                 <div class="row g-2 mb-3">
                     <div class="col-md-3 col-6">
-                        <label class="form-label text-muted small">Bot ID (编号)</label>
+                        <label class="form-label text-muted small" data-i18n="bot_id">Bot ID (编号)</label>
                         <input type="text" class="form-control" id="bot_id" value="{{ config.get('bot_settings', {}).get('bot_id', '1') }}">
                     </div>
                     <div class="col-md-3 col-6">
-                        <label class="form-label text-muted small">Chrome 端口</label>
+                        <label class="form-label text-muted small" data-i18n="chrome_port">Chrome 端口</label>
                         <input type="number" class="form-control" id="chrome_port" value="{{ config.get('bot_settings', {}).get('chrome_port', 9222) }}">
                     </div>
                     <div class="col-md-3 col-6">
-                        <label class="form-label text-muted small">心跳间隔 (轮次)</label>
+                        <label class="form-label text-muted small" data-i18n="heartbeat_interval">心跳间隔 (轮次)</label>
                         <input type="number" class="form-control" id="heartbeat_interval" value="{{ config.get('bot_settings', {}).get('heartbeat_interval', 100) }}">
                     </div>
                     <div class="col-md-3 col-6">
-                        <label class="form-label text-muted small">刷票间隔 (秒)</label>
+                        <label class="form-label text-muted small" data-i18n="refresh_interval">刷票间隔 (秒)</label>
                         <input type="number" class="form-control" id="refresh_interval" value="{{ config.get('bot_settings', {}).get('refresh_interval', 180) }}">
                     </div>
                 </div>
 
-                <button type="button" class="btn btn-primary w-100 mt-3 py-2 fw-bold" onclick="saveConfig()">💾 保存所有配置</button>
+                <button type="button" class="btn btn-primary w-100 mt-3 py-2 fw-bold" onclick="saveConfig()" data-i18n="save_all">💾 保存所有配置</button>
             </form>
         </div>
     </div>
 </div>
 
 <script>
+    // ==================== i18n System ====================
+    const i18nDict = {
+        zh: {
+            page_title: 'KTMB 抢票指挥官 Web',
+            lang_btn: '🌐 中/EN',
+            title: '🚄 KTMB 抢票指挥官',
+            live_monitor: '💻 实时监控台',
+            status_stopped: '已停止',
+            status_running: '正在运行',
+            waiting: '等待启动...',
+            btn_start: '🚀 启动抢票',
+            btn_stop: '🛑 停止',
+            task_config: '⚙️ 任务配置 (修改后请先点击底部保存)',
+            travel_plans: '1. 乘车计划 (可添加多个时间段)',
+            add_plan: '➕ 添加计划',
+            account_payment: '2. 账号与支付',
+            ktmb_email: 'KTMB 邮箱',
+            ktmb_password: 'KTMB 密码',
+            payment_method: '支付方式',
+            pay_command: 'Command (遥控指令 - 推荐)',
+            pay_wallet: 'KTM Wallet (自动扣款)',
+            bot_settings: '3. 机器人参数 (偏好 & 通知)',
+            heartbeat_screenshot: '📸 存活心跳附带网页截图 (允许通过 /snap 随时截屏)',
+            old_train_seat: '旧火车 (Intercity) 座位偏好',
+            seat_forward: '正向座位 (Forward)',
+            seat_window: '靠窗优先 (Window)',
+            new_train_seat: '新火车 (ETS) 座位偏好',
+            seat_normal: '普通座位 (Normal Seat)',
+            seat_table: '接受大桌位 (Table Seat)',
+            sys_params: '4. 核心系统参数 (Advanced)',
+            bot_id: 'Bot ID (编号)',
+            chrome_port: 'Chrome 端口',
+            heartbeat_interval: '心跳间隔 (轮次)',
+            refresh_interval: '刷票间隔 (秒)',
+            save_all: '💾 保存所有配置',
+            // Task template labels
+            from_station: '出发站',
+            to_station: '到达站',
+            year: '年',
+            month: '月',
+            day: '日',
+            time_label: '时间 (HH:MM)',
+            train_type: '火车类型',
+            old_train: '旧火车 (Intercity)',
+            new_train: '新火车 (ETS)',
+            delete_plan_title: '删除此计划',
+            swap_stations_title: '对换出发/到达站',
+            monitor_plan: '监控计划',
+            // Alert messages
+            alert_saved: '配置已保存！',
+            alert_started: '机器人已启动！',
+            alert_stopped: '机器人已停止！',
+            alert_already_running: '机器人已经在运行中！'
+        },
+        en: {
+            page_title: 'KTMB Ticket Commander Web',
+            lang_btn: '🌐 中/EN',
+            title: '🚄 KTMB Ticket Commander',
+            live_monitor: '💻 Live Monitor',
+            status_stopped: 'Stopped',
+            status_running: 'Running',
+            waiting: 'Waiting to start...',
+            btn_start: '🚀 Start Bot',
+            btn_stop: '🛑 Stop',
+            task_config: '⚙️ Task Config (Click Save at bottom after changes)',
+            travel_plans: '1. Travel Plans (add multiple schedules)',
+            add_plan: '➕ Add Plan',
+            account_payment: '2. Account & Payment',
+            ktmb_email: 'KTMB Email',
+            ktmb_password: 'KTMB Password',
+            payment_method: 'Payment Method',
+            pay_command: 'Command (Remote - Recommended)',
+            pay_wallet: 'KTM Wallet (Auto Pay)',
+            bot_settings: '3. Bot Settings (Preferences & Notifications)',
+            heartbeat_screenshot: '📸 Heartbeat with screenshot (use /snap anytime)',
+            old_train_seat: 'Old Train (Intercity) Seat Prefs',
+            seat_forward: 'Forward Facing',
+            seat_window: 'Window Seat',
+            new_train_seat: 'New Train (ETS) Seat Prefs',
+            seat_normal: 'Normal Seat',
+            seat_table: 'Accept Table Seat',
+            sys_params: '4. System Parameters (Advanced)',
+            bot_id: 'Bot ID',
+            chrome_port: 'Chrome Port',
+            heartbeat_interval: 'Heartbeat Interval (rounds)',
+            refresh_interval: 'Refresh Interval (sec)',
+            save_all: '💾 Save All Settings',
+            // Task template labels
+            from_station: 'From Station',
+            to_station: 'To Station',
+            year: 'Year',
+            month: 'Month',
+            day: 'Day',
+            time_label: 'Time (HH:MM)',
+            train_type: 'Train Type',
+            old_train: 'Old Train (Intercity)',
+            new_train: 'New Train (ETS)',
+            delete_plan_title: 'Delete this plan',
+            swap_stations_title: 'Swap stations',
+            monitor_plan: 'Monitor Plan',
+            // Alert messages
+            alert_saved: 'Settings saved!',
+            alert_started: 'Bot started!',
+            alert_stopped: 'Bot stopped!',
+            alert_already_running: 'Bot is already running!'
+        }
+    };
+
+    let currentLang = localStorage.getItem('ktmb_lang') || 'zh';
+
+    function t(key) {
+        return (i18nDict[currentLang] && i18nDict[currentLang][key]) || (i18nDict['zh'][key]) || key;
+    }
+
+    function applyLang() {
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (i18nDict[currentLang] && i18nDict[currentLang][key] !== undefined) {
+                el.textContent = i18nDict[currentLang][key];
+            }
+        });
+        // Update html lang attribute
+        document.documentElement.lang = currentLang === 'zh' ? 'zh' : 'en';
+        // Re-render tasks so dynamic labels update
+        renderTasks();
+        // Re-apply status text
+        const statusEl = document.getElementById('status-text');
+        if (statusEl) {
+            const isRunning = statusEl.getAttribute('data-status') === 'running';
+            statusEl.textContent = isRunning ? t('status_running') : t('status_stopped');
+        }
+    }
+
+    function toggleLang() {
+        currentLang = currentLang === 'zh' ? 'en' : 'zh';
+        localStorage.setItem('ktmb_lang', currentLang);
+        applyLang();
+    }
+
+    // Apply saved language on load
+    applyLang();
+    // ==================== End i18n System ====================
+
     let tasks = {{ config.get('search_tasks', [{}]) | tojson | safe }};
     if (tasks.length === 0 || !tasks[0].from) {
         tasks = [{from: "KLUANG ETS Intercity", to: "JB SENTRAL ETS Intercity", year: 2026, month: 3, day: "2", time: "18:49", is_old_train: true}];
@@ -175,38 +322,38 @@
             const isOldTrain = task.is_old_train !== false; 
             const html = `
             <div class="task-block border rounded p-3 mb-3 position-relative shadow-sm" data-index="${index}">
-                ${tasks.length > 1 ? `<button type="button" class="btn-close position-absolute top-0 end-0 m-2" onclick="removeTask(${index})" title="删除此计划"></button>` : ''}
+                ${tasks.length > 1 ? `<button type="button" class="btn-close position-absolute top-0 end-0 m-2" onclick="removeTask(${index})" title="${t('delete_plan_title')}"></button>` : ''}
                 
                 <div class="row g-2 mb-2 align-items-end">
                     <div class="col-5">
-                        <label class="form-label text-muted small mb-1">出发站</label>
+                        <label class="form-label text-muted small mb-1">${t('from_station')}</label>
                         <input type="text" class="form-control station-from" list="stations" value="${task.from || ''}">
                     </div>
                     <div class="col-2 d-flex justify-content-center pb-1">
-                        <div class="swap-btn" onclick="swapStation(${index})" title="对换出发/到达站">🔄</div>
+                        <div class="swap-btn" onclick="swapStation(${index})" title="${t('swap_stations_title')}">🔄</div>
                     </div>
                     <div class="col-5">
-                        <label class="form-label text-muted small mb-1">到达站</label>
+                        <label class="form-label text-muted small mb-1">${t('to_station')}</label>
                         <input type="text" class="form-control station-to" list="stations" value="${task.to || ''}">
                     </div>
                 </div>
 
                 <div class="row g-2 mb-2">
-                    <div class="col-4"><label class="form-label text-muted small mb-1">年</label><input type="number" class="form-control task-year" value="${task.year || new Date().getFullYear()}"></div>
-                    <div class="col-4"><label class="form-label text-muted small mb-1">月</label><input type="number" class="form-control task-month" value="${task.month || 1}"></div>
-                    <div class="col-4"><label class="form-label text-muted small mb-1">日</label><input type="text" class="form-control task-day" value="${task.day || '1'}"></div>
+                    <div class="col-4"><label class="form-label text-muted small mb-1">${t('year')}</label><input type="number" class="form-control task-year" value="${task.year || new Date().getFullYear()}"></div>
+                    <div class="col-4"><label class="form-label text-muted small mb-1">${t('month')}</label><input type="number" class="form-control task-month" value="${task.month || 1}"></div>
+                    <div class="col-4"><label class="form-label text-muted small mb-1">${t('day')}</label><input type="text" class="form-control task-day" value="${task.day || '1'}"></div>
                 </div>
 
                 <div class="row g-2">
                     <div class="col-6">
-                        <label class="form-label text-muted small mb-1">时间 (HH:MM)</label>
+                        <label class="form-label text-muted small mb-1">${t('time_label')}</label>
                         <input type="text" class="form-control task-time" value="${task.time || '08:00'}">
                     </div>
                     <div class="col-6">
-                        <label class="form-label text-muted small mb-1">火车类型</label>
+                        <label class="form-label text-muted small mb-1">${t('train_type')}</label>
                         <select class="form-select task-type">
-                            <option value="true" ${isOldTrain ? 'selected' : ''}>旧火车 (Intercity)</option>
-                            <option value="false" ${!isOldTrain ? 'selected' : ''}>新火车 (ETS)</option>
+                            <option value="true" ${isOldTrain ? 'selected' : ''}>${t('old_train')}</option>
+                            <option value="false" ${!isOldTrain ? 'selected' : ''}>${t('new_train')}</option>
                         </select>
                     </div>
                 </div>
@@ -252,7 +399,7 @@
                 day: block.querySelector('.task-day').value || '1',
                 time: block.querySelector('.task-time').value || '00:00',
                 is_old_train: block.querySelector('.task-type').value === 'true',
-                type: `监控计划 ${idx + 1}`
+                type: `${t('monitor_plan')} ${idx + 1}`
             });
         });
         tasks = result;
@@ -292,25 +439,46 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
-        }).then(res => res.json()).then(data => alert(data.message));
+        }).then(res => res.json()).then(data => alert(t('alert_saved')));
     }
 
     function startBot() {
         fetch('/api/start', { method: 'POST' }).then(res => res.json()).then(data => {
-            if(data.status === 'success') updateStatus();
-            else alert(data.message);
+            if(data.status === 'success') {
+                updateStatus();
+                alert(t('alert_started'));
+            } else {
+                alert(t('alert_already_running'));
+            }
         });
     }
 
     function stopBot() {
-        fetch('/api/stop', { method: 'POST' }).then(res => res.json()).then(data => updateStatus());
+        fetch('/api/stop', { method: 'POST' }).then(res => res.json()).then(data => {
+            updateStatus();
+            alert(t('alert_stopped'));
+        });
+    }
+
+    function updateStatus() {
+        fetch('/api/status').then(res => res.json()).then(data => {
+            const isRunning = data.running;
+            document.getElementById('status-dot').className = isRunning ? 'status-dot running' : 'status-dot stopped';
+            const statusEl = document.getElementById('status-text');
+            statusEl.setAttribute('data-status', isRunning ? 'running' : 'stopped');
+            statusEl.textContent = isRunning ? t('status_running') : t('status_stopped');
+            document.getElementById('btn-start').disabled = isRunning;
+            document.getElementById('btn-stop').disabled = !isRunning;
+        });
     }
 
     setInterval(() => {
         fetch('/api/status').then(res => res.json()).then(data => {
             const isRunning = data.running;
             document.getElementById('status-dot').className = isRunning ? 'status-dot running' : 'status-dot stopped';
-            document.getElementById('status-text').innerText = isRunning ? '正在运行' : '已停止';
+            const statusEl = document.getElementById('status-text');
+            statusEl.setAttribute('data-status', isRunning ? 'running' : 'stopped');
+            statusEl.textContent = isRunning ? t('status_running') : t('status_stopped');
             document.getElementById('btn-start').disabled = isRunning;
             document.getElementById('btn-stop').disabled = !isRunning;
         });
@@ -328,4 +496,3 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
